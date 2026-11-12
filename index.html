@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مغامرة الكنوز العربية وأحكام الطهارة</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .game-container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 25px;
+      padding: 25px;
+      width: 100%;
+      max-width: 650px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px 20px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    .alien-box {
+      font-size: 4rem;
+      margin: 10px 0;
+      animation: float 2s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .speech-bubble {
+      background: #fff;
+      color: #1a1a2e;
+      padding: 15px;
+      border-radius: 20px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .stage {
+      display: none;
+    }
+    .stage.active {
+      display: block;
+    }
+    .btn {
+      background: #ff9f1c;
+      color: #fff;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+      margin: 8px;
+    }
+    .btn:hover {
+      background: #ffbf69;
+      transform: scale(1.05);
+    }
+    .gems-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .gem-item {
+      font-size: 2.5rem;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 15px;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .gem-item:hover {
+      transform: scale(1.1);
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .gem-item.collected {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    .colors-grid {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .color-btn {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .color-btn:hover {
+      transform: scale(1.15);
+    }
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 15px;
+    }
+    .option-btn {
+      background: #2ec4b6;
+      color: #fff;
+      border: none;
+      padding: 15px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .option-btn:hover {
+      background: #20a4f3;
+    }
+    .penalty-box {
+      background: #e71d36;
+      padding: 15px;
+      border-radius: 15px;
+      margin-top: 15px;
+      font-size: 1.1rem;
+      display: none;
+    }
+    .reward-box {
+      background: #2ec4b6;
+      padding: 15px;
+      border-radius: 15px;
+      margin-top: 15px;
+      font-size: 1.1rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="game-container">
+  <div class="header">
+    <div>💎 الجواهر: <span id="score">0</span></div>
+    <div>❤️ المحاولات: <span id="lives">3</span></div>
+  </div>
+
+  <div class="alien-box" id="alien">👽</div>
+  <div class="speech-bubble" id="alien-msg">أهلاً يا بطل! أنا صديقك الفضائي "زيكو"، هيا نجمع الكنوز معاً!</div>
+
+  <!-- المرحلة 1: جمع الكنوز -->
+  <div id="stage-gems" class="stage active">
+    <h2>المرحلة الأولى: كوكب الجواهر والكنوز 💎</h2>
+    <p>اضغط على جميع الجواهر والكنوز لتجمعها في حقيبتنا!</p>
+    <div class="gems-grid" id="gems-container"></div>
+    <button class="btn" id="to-lab-btn" style="display:none;" onclick="goToLab()">ادخل معمل الألوان 🧪</button>
+  </div>
+
+  <!-- المرحلة 2: معمل الألوان -->
+  <div id="stage-lab" class="stage">
+    <h2>المرحلة الثانية: معمل الألوان العجيب 🎨</h2>
+    <p>اختر لوناً لتلوين مركبتنا الفضائية قبل دخول النفق!</p>
+    <div class="colors-grid">
+      <div class="color-btn" style="background:#ff595e;" onclick="pickColor('#ff595e', 'الأحمر الناري')"></div>
+      <div class="color-btn" style="background:#ffca3a;" onclick="pickColor('#ffca3a', 'الأصفر الذهبي')"></div>
+      <div class="color-btn" style="background:#8ac926;" onclick="pickColor('#8ac926', 'الأخضر الزمردي')"></div>
+      <div class="color-btn" style="background:#1982c4;" onclick="pickColor('#1982c4', 'الأزرق السماوي')"></div>
+    </div>
+    <button class="btn" id="to-tunnel-btn" style="display:none;" onclick="goToTunnel()">ادخل نفق الأحكام 🚇</button>
+  </div>
+
+  <!-- المرحلة 3: نفق أحكام الطهارة -->
+  <div id="stage-tunnel" class="stage">
+    <h2>المرحلة الثالثة: نفق أحكام الطهارة (سؤال <span id="q-num">1</span> من 10) 🕌</h2>
+    <h3 id="question-text" style="background: rgba(0,0,0,0.25); padding: 15px; border-radius: 12px;"></h3>
+    <div class="options-grid" id="options-container"></div>
+    <div class="reward-box" id="reward-box"></div>
+    <div class="penalty-box" id="penalty-box"></div>
+    <button class="btn" id="next-q-btn" style="display:none;" onclick="nextQuestion()">السؤال التالي ⬅️</button>
+  </div>
+
+  <!-- شاشة النهاية -->
+  <div id="stage-end" class="stage">
+    <h2>🎉 مبروك يا بطل الطهارة! 🎉</h2>
+    <p id="final-result" style="font-size: 1.3rem;"></p>
+    <button class="btn" onclick="location.reload()">العب مرة أخرى 🔄</button>
+  </div>
+</div>
+
+<script>
+  let score = 0;
+  let lives = 3;
+  let collectedGems = 0;
+  let currentQ = 0;
+
+  const gemsIcons = ['💎', '👑', '🪙', '🏆', '💍', '🔮', '📿', '🏺'];
+  
+  const questions = [
+    {
+      q: "ماذا نقول قبل أن نبدأ الوضوء؟",
+      options: ["بسم الله", "الحمد لله", "سبحان الله"],
+      correct: 0,
+      reward: "أحسنت! حصلت على تاج الذكر (+10 جواهر) 👑",
+      penalty: "تحدي: اقفز 3 قفزات في مكانك وقل (بسم الله) بصوت جميل!"
+    },
+    {
+      q: "كم مرة نغسل أيدينا ووجهنا في الوضوء؟",
+      options: ["مرة واحدة فقط", "ثلاث مرات", "عشر مرات"],
+      correct: 1,
+      reward: "رائع! ربحت جوهرة النظافة (+10 جواهر) 💎",
+      penalty: "تحدي: صفّق بيديك 5 مرات وتذكر أن السنة الغسل 3 مرات!"
+    },
+    {
+      q: "ما هو الماء الذي يصح أن نتوضأ به؟",
+      options: ["الماء الطهور النظيف", "عصير البرتقال", "الشاي"],
+      correct: 0,
+      reward: "ممتاز! فزت بكأس الماء النقي (+10 جواهر) 🏆",
+      penalty: "تحدي: اشرب رشفة ماء وقل الحمد لله!"
+    },
+    {
+      q: "أي يد نبدأ بغسلها أولاً في الوضوء؟",
+      options: ["اليد اليسرى", "اليد اليمنى", "الاثنتان معاً"],
+      correct: 1,
+      reward: "بطل! ربحت وسام التيامن (+10 جواهر) 🥇",
+      penalty: "تحدي: ارفع يدك اليمنى عالياً وابتسم!"
+    },
+    {
+      q: "ماذا نفعل برأسنا أثناء الوضوء؟",
+      options: ["نمسحه بالماء", "نغسله بالصابون", "لا نلمسه"],
+      correct: 0,
+      reward: "ذكي جداً! حصلت على نجمة الفهم (+10 جواهر) ⭐",
+      penalty: "تحدي: ضع يديك على رأسك كما تمسح في الوضوء!"
+    },
+    {
+      q: "إلى أين نغسل أيدينا في الوضوء؟",
+      options: ["إلى الأصابع فقط", "إلى المرفقين (الكوعين)", "إلى الكتفين"],
+      correct: 1,
+      reward: "إجابة صحيحة! ربحت صندوق كنز (+10 جواهر) 🧰",
+      penalty: "تحدي: أشر إلى مرفقك (كوعك) وتذكر غسله في الوضوء!"
+    },
+    {
+      q: "إلى أين نغسل أرجلنا في الوضوء؟",
+      options: ["إلى الكعبين (العظمتين البارزتين)", "الأصابع فقط", "إلى الركبتين"],
+      correct: 0,
+      reward: "مدهش! حصلت على مفتاح النفق الذهبي (+10 جواهر) 🔑",
+      penalty: "تحدي: المس قدميك بيديك بسرعة!"
+    },
+    {
+      q: "هل يصح أن نصلي بدون وضوء؟",
+      options: ["نعم يصح", "لا يصح أبداً", "يصح أحياناً"],
+      correct: 1,
+      reward: "ما شاء الله! ربحت درع الصلاة (+10 جواهر) 🛡️",
+      penalty: "تحدي: در حول نفسك دورة واحدة وتذكر أن الوضوء شرط للصلاة!"
+    },
+    {
+      q: "ما حكم تنظيف الأسنان بالسواك أو الفرشاة قبل الوضوء؟",
+      options: ["سنة جميلة يحبها الله", "ممنوع", "مكروه"],
+      correct: 0,
+      reward: "رائع يا نظيف! ربحت جوهرة الابتسامة (+10 جواهر) 😁",
+      penalty: "تحدي: أرِنا ابتسامتك الجميلة!"
+    },
+    {
+      q: "ماذا نقول بعد الانتهاء من الوضوء؟",
+      options: ["أشهد أن لا إله إلا الله وأن محمداً رسول الله", "تصبحون على خير", "السلام عليكم"],
+      correct: 0,
+      reward: "مبروك! أنهيت النفق بنجاح وربحت الكنز الأعظم (+20 جوهرة) 👑",
+      penalty: "تحدي: ردد الشهادتين بصوت واضح وجميل!"
+    }
+  ];
+
+  // تهيئة المرحلة الأولى
+  const gemsContainer = document.getElementById('gems-container');
+  gemsIcons.forEach((icon) => {
+    const div = document.createElement('div');
+    div.className = 'gem-item';
+    div.textContent = icon;
+    div.onclick = function() {
+      this.classList.add('collected');
+      score += 5;
+      collectedGems++;
+      updateStats();
+      document.getElementById('alien-msg').textContent = "رائع! لقد وجدت كنزاً ثميناً!";
+      if (collectedGems === gemsIcons.length) {
+        document.getElementById('alien-msg').textContent = "أحسنت! جمعنا كل الكنوز، هيا إلى معمل الألوان!";
+        document.getElementById('to-lab-btn').style.display = 'inline-block';
+      }
+    };
+    gemsContainer.appendChild(div);
+  });
+
+  function updateStats() {
+    document.getElementById('score').textContent = score;
+    document.getElementById('lives').textContent = lives;
+  }
+
+  function goToLab() {
+    document.getElementById('stage-gems').classList.remove('active');
+    document.getElementById('stage-lab').classList.add('active');
